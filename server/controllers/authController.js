@@ -117,7 +117,21 @@ const googleCallback = [
     try {
       const token = generateToken(req.user._id);
       const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
-      res.redirect(`${clientUrl}/dashboard?token=${token}`);
+
+      // Send HTML page that saves token and redirects
+      res.send(`
+        <!DOCTYPE html>
+        <html>
+          <head><title>Logging in...</title></head>
+          <body>
+            <script>
+              localStorage.setItem('token', '${token}');
+              window.location.href = '${clientUrl}/dashboard';
+            </script>
+            <p>Logging you in, please wait...</p>
+          </body>
+        </html>
+      `);
     } catch (err) {
       const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
       res.redirect(`${clientUrl}/login?error=google`);

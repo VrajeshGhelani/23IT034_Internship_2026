@@ -105,39 +105,49 @@ const googleAuth = passport.authenticate('google', {
   scope: ['profile', 'email'],
 });
 
-// Sanitize CLIENT_URL: trim, strip trailing slash, ensure protocol
-const getClientUrl = () => {
-  let url = (process.env.CLIENT_URL || 'http://localhost:5173').trim().replace(/\/+$/, '');
-  if (!/^https?:\/\//i.test(url)) {
-    url = 'https://' + url;
-  }
-  return url;
-};
-
+// @desc   Google OAuth callback
+// @route  GET /api/auth/google/callback
+// @access Public
 const googleCallback = [
   passport.authenticate('google', {
     session: false,
-    failureRedirect: getClientUrl() + '/login?error=google',
+    failureRedirect: (process.env.CLIENT_URL || 'http://localhost:5173') + '/login?error=google',
   }),
   (req, res) => {
     try {
       const token = generateToken(req.user._id);
-      const clientUrl = getClientUrl();
+      const clientUrl = (process.env.CLIENT_URL || 'http://localhost:5173').trim().replace(/\/+$/, '');
+
+      // Use an HTML trampoline page instead of res.redirect().
+      // res.redirect() can break if CLIENT_URL is malformed (no protocol) —
+      // the browser treats it as a relative path causing URL concatenation.
+      // This HTML page uses window.location.replace() which handles URLs
+      // more reliably. The token is passed via ?token= in the URL so the
+      // frontend DashboardPage can read it from its own domain's URL and
+      // save it to its own localStorage.
+      // NOTE: We do NOT use localStorage.setItem() here because this HTML
+      // is served from the backend domain (e.g. localhost:5000) which is a
+      // different origin from the frontend (e.g. localhost:5173), and
+      // localStorage is domain-scoped.
       res.send(`
         <!DOCTYPE html>
         <html>
-          <head><title>Logging in...</title></head>
+          <head>
+            <title>Signing you in...</title>
+          </head>
           <body>
+            <p style="font-family:sans-serif;text-align:center;margin-top:40px">
+              Signing you in, please wait...
+            </p>
             <script>
-              localStorage.setItem('token', '${token}');
-              window.location.href = '${clientUrl}/dashboard';
+              window.location.replace('${clientUrl}/dashboard?token=${token}');
             </script>
-            <p>Logging you in, please wait...</p>
           </body>
         </html>
       `);
     } catch (err) {
-      res.redirect(getClientUrl() + '/login?error=google');
+      const clientUrl = (process.env.CLIENT_URL || 'http://localhost:5173').trim().replace(/\/+$/, '');
+      res.redirect(clientUrl + '/login?error=google');
     }
   },
 ];

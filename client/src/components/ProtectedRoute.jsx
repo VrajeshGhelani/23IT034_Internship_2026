@@ -5,6 +5,11 @@ const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
   const location = useLocation();
 
+  // Allow access if there's a ?token= in the URL (Google OAuth callback flow).
+  // DashboardPage's useEffect will read it, save to localStorage, and reload.
+  const searchParams = new URLSearchParams(location.search);
+  const hasOAuthToken = searchParams.has('token');
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -18,7 +23,7 @@ const ProtectedRoute = ({ children }) => {
     );
   }
 
-  if (!user) {
+  if (!user && !hasOAuthToken) {
     // Preserve redirectTo from location state (used by invite join flow)
     const redirectTo = location.state?.redirectTo || location.pathname;
     return <Navigate to="/login" state={{ from: location, redirectTo }} replace />;
@@ -28,3 +33,4 @@ const ProtectedRoute = ({ children }) => {
 };
 
 export default ProtectedRoute;
+

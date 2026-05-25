@@ -111,12 +111,14 @@ const googleAuth = passport.authenticate('google', {
 const googleCallback = [
   passport.authenticate('google', {
     session: false,
-    failureRedirect: (process.env.CLIENT_URL || 'http://localhost:5173').trim().replace(/\/$/, '') + '/login?error=google',
+    failureRedirect: (process.env.CLIENT_URL || 'http://localhost:5173') + '/login?error=google',
   }),
   (req, res) => {
     try {
       const token = generateToken(req.user._id);
-      const clientUrl = (process.env.CLIENT_URL || 'http://localhost:5173').trim().replace(/\/$/, '');
+      const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
+
+      // Send HTML page that saves token and redirects
       res.send(`
         <!DOCTYPE html>
         <html>
@@ -131,8 +133,8 @@ const googleCallback = [
         </html>
       `);
     } catch (err) {
-      const clientUrl = (process.env.CLIENT_URL || 'http://localhost:5173').trim().replace(/\/$/, '');
-      res.redirect(clientUrl + '/login?error=google');
+      const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
+      res.redirect(`${clientUrl}/login?error=google`);
     }
   },
 ];

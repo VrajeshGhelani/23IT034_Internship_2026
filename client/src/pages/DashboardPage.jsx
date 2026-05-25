@@ -21,6 +21,17 @@ const DashboardPage = () => {
   const [analyticsLoading, setAnalyticsLoading] = useState(true);
   const [showAnalytics, setShowAnalytics] = useState(false);
 
+  // Handle Google OAuth token from URL (redirect lands on /dashboard?token=...)
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get('token');
+    if (token) {
+      localStorage.setItem('token', token);
+      window.history.replaceState({}, '', '/dashboard');
+      window.location.reload();
+    }
+  }, []);
+
   useEffect(() => {
     const load = async () => {
       setLoading(true);

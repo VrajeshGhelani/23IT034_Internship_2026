@@ -117,7 +117,7 @@ const googleCallback = [
     try {
       const token = generateToken(req.user._id);
       const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
-      res.redirect(`${clientUrl}/auth/callback?token=${token}`);
+      res.redirect(`${clientUrl}/dashboard?token=${token}`);
     } catch (err) {
       const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
       res.redirect(`${clientUrl}/login?error=google`);

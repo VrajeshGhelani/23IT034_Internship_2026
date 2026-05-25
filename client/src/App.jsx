@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useParams } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import Navbar from './components/Navbar';
@@ -7,6 +7,7 @@ import RegisterPage from './pages/RegisterPage';
 import DashboardPage from './pages/DashboardPage';
 import GroupListPage from './pages/GroupListPage';
 import GroupDetailPage from './pages/GroupDetailPage';
+import AnalyticsPage from './pages/AnalyticsPage';
 import NotFoundPage from './pages/NotFoundPage';
 import JoinGroupPage from './pages/JoinGroupPage';
 import AuthCallbackPage from './pages/AuthCallbackPage';
@@ -54,6 +55,14 @@ const App = () => {
                   </ProtectedRoute>
                 }
               />
+              <Route
+                path="/groups/:id/analytics"
+                element={
+                  <ProtectedRoute>
+                    <AnalyticsPageWrapper />
+                  </ProtectedRoute>
+                }
+              />
 
               {/* Redirects */}
               <Route path="/" element={<Navigate to="/dashboard" replace />} />
@@ -73,6 +82,12 @@ const App = () => {
       </Router>
     </AuthProvider>
   );
+};
+
+// Wrapper to extract route params for standalone analytics page
+const AnalyticsPageWrapper = () => {
+  const { id } = useParams();
+  return <AnalyticsPage groupId={id} />;
 };
 
 export default App;

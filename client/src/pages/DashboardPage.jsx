@@ -5,12 +5,21 @@ import { formatCurrency } from '../utils/formatCurrency';
 import useAuth from '../hooks/useAuth';
 import SummaryCard from '../components/SummaryCard';
 import GroupCard from '../components/GroupCard';
+import axiosInstance from '../api/axiosInstance';
+import CategoryPieChart from '../components/analytics/CategoryPieChart';
+import MonthlyTrendChart from '../components/analytics/MonthlyTrendChart';
+import SummaryCards from '../components/analytics/SummaryCards';
 
 const DashboardPage = () => {
   const { user } = useAuth();
   const [summary, setSummary] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  // Dashboard analytics
+  const [dashAnalytics, setDashAnalytics] = useState(null);
+  const [analyticsLoading, setAnalyticsLoading] = useState(true);
+  const [showAnalytics, setShowAnalytics] = useState(false);
 
   useEffect(() => {
     const load = async () => {
@@ -26,6 +35,25 @@ const DashboardPage = () => {
     };
     load();
   }, []);
+
+  // Fetch dashboard analytics
+  const loadDashboardAnalytics = async () => {
+    setAnalyticsLoading(true);
+    try {
+      const { data } = await axiosInstance.get('/api/dashboard/analytics');
+      setDashAnalytics(data.analytics);
+    } catch (err) {
+      console.error('Failed to load dashboard analytics:', err);
+    } finally {
+      setAnalyticsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (showAnalytics) {
+      loadDashboardAnalytics();
+    }
+  }, [showAnalytics]);
 
   if (loading) {
     return (
@@ -129,6 +157,65 @@ const DashboardPage = () => {
                 {summary.groups.map(({ group, myBalance }) => (
                   <GroupCard key={group._id} group={group} myBalance={myBalance} />
                 ))}
+              </div>
+            )}
+          </div>
+
+          {/* Overall Analytics Section */}
+          <div className="mt-10">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-bold text-slate-100 flex items-center gap-2">
+                📊 Your Overall Analytics
+              </h2>
+              <button
+                onClick={() => setShowAnalytics(!showAnalytics)}
+                className="btn-secondary text-sm"
+                id="toggle-dashboard-analytics-btn"
+              >
+                {showAnalytics ? 'Hide Analytics' : 'Show Analytics'}
+              </button>
+            </div>
+
+            {showAnalytics && (
+              <div className="animate-fade-in space-y-6">
+                {analyticsLoading ? (
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                      {[1, 2, 3, 4].map((i) => (
+                        <div key={i} className="glass-card p-4 animate-pulse">
+                          <div className="h-3 bg-slate-800 rounded w-20 mb-3" />
+                          <div className="h-6 bg-slate-800 rounded w-24" />
+                        </div>
+                      ))}
+                    </div>
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                      <div className="glass-card p-6 animate-pulse">
+                        <div className="h-4 bg-slate-800 rounded w-32 mb-4" />
+                        <div className="h-48 bg-slate-800 rounded-xl" />
+                      </div>
+                      <div className="glass-card p-6 animate-pulse">
+                        <div className="h-4 bg-slate-800 rounded w-32 mb-4" />
+                        <div className="h-48 bg-slate-800 rounded-xl" />
+                      </div>
+                    </div>
+                  </div>
+                ) : dashAnalytics && dashAnalytics.totalExpenses > 0 ? (
+                  <>
+                    <SummaryCards analytics={dashAnalytics} />
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                      <CategoryPieChart data={dashAnalytics.categoryBreakdown} />
+                      <MonthlyTrendChart data={dashAnalytics.monthlyTrend} />
+                    </div>
+                  </>
+                ) : (
+                  <div className="glass-card p-8 flex flex-col items-center text-center">
+                    <div className="text-5xl mb-4">📊</div>
+                    <h3 className="text-lg font-semibold text-slate-300 mb-2">No expense data yet</h3>
+                    <p className="text-sm text-slate-500">
+                      Start adding expenses to your groups to see aggregated analytics here.
+                    </p>
+                  </div>
+                )}
               </div>
             )}
           </div>

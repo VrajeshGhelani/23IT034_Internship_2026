@@ -8,9 +8,12 @@ import AddExpenseModal from '../components/AddExpenseModal';
 import BalanceView from '../components/BalanceView';
 import SettleUpView from '../components/SettleUpView';
 import ActivityFeed from '../components/ActivityFeed';
+import GroupChat from '../components/GroupChat';
+import AnalyticsPage from '../pages/AnalyticsPage';
+import axiosInstance from '../api/axiosInstance';
 import { getInitials } from '../utils/formatCurrency';
 
-const TABS = ['Expenses', 'Balances', 'Settle Up', 'Activity'];
+const TABS = ['Expenses', 'Balances', 'Settle Up', 'Activity', 'Chat', 'Analytics'];
 
 const GroupDetailPage = () => {
   const { id } = useParams();
@@ -36,6 +39,9 @@ const GroupDetailPage = () => {
   const [pdfLoading, setPdfLoading] = useState(false);
   const [pdfToast, setPdfToast] = useState('');
 
+  // Unread chat badge
+  const [unreadCount, setUnreadCount] = useState(0);
+
   const { expenses, loading: expLoading, loadExpenses, add, update, remove } = useExpenses(id);
 
   useEffect(() => {
@@ -55,6 +61,32 @@ const GroupDetailPage = () => {
   useEffect(() => {
     loadExpenses();
   }, [id]);
+
+  // Fetch unread count periodically when not on chat tab
+  useEffect(() => {
+    if (!id || !user) return;
+
+    const fetchUnread = async () => {
+      try {
+        const { data } = await axiosInstance.get(`/api/groups/${id}/messages/unread-count`);
+        setUnreadCount(data.unreadCount || 0);
+      } catch {
+        // Silently fail
+      }
+    };
+
+    fetchUnread();
+    const interval = setInterval(fetchUnread, 15000); // Poll every 15 seconds
+
+    return () => clearInterval(interval);
+  }, [id, user, activeTab]);
+
+  // Reset unread when switching to chat tab
+  useEffect(() => {
+    if (activeTab === 'Chat') {
+      setUnreadCount(0);
+    }
+  }, [activeTab]);
 
   const handleExpenseSubmit = async (payload, expenseId) => {
     if (expenseId) {
@@ -405,14 +437,22 @@ const GroupDetailPage = () => {
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
-            className={activeTab === tab ? 'tab-btn-active flex-1 min-w-fit' : 'tab-btn-inactive flex-1 min-w-fit'}
+            className={`${activeTab === tab ? 'tab-btn-active' : 'tab-btn-inactive'} flex-1 min-w-fit relative`}
             id={`tab-${tab.replace(' ', '-').toLowerCase()}`}
           >
             {tab === 'Expenses' && '💸 '}
             {tab === 'Balances' && '⚖️ '}
             {tab === 'Settle Up' && '✅ '}
             {tab === 'Activity' && '📋 '}
+            {tab === 'Chat' && '💬 '}
+            {tab === 'Analytics' && '📊 '}
             {tab}
+            {/* Unread badge for Chat tab */}
+            {tab === 'Chat' && unreadCount > 0 && activeTab !== 'Chat' && (
+              <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full text-[10px] font-bold text-white flex items-center justify-center animate-pulse">
+                {unreadCount > 9 ? '9+' : unreadCount}
+              </span>
+            )}
           </button>
         ))}
       </div>
@@ -450,6 +490,14 @@ const GroupDetailPage = () => {
         )}
 
         {activeTab === 'Activity' && <ActivityFeed groupId={id} />}
+
+        {activeTab === 'Chat' && (
+          <GroupChat groupId={id} members={group.members} />
+        )}
+
+        {activeTab === 'Analytics' && (
+          <AnalyticsPage groupId={id} groupName={group.name} inline={true} />
+        )}
       </div>
 
       {/* Add/Edit Expense Modal */}

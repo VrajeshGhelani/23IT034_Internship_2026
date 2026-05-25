@@ -15,6 +15,8 @@ A full-stack, production-ready expense splitting web application built with the 
 - **Activity Feed** — Reverse-chronological expense history
 - **Dashboard** — Cross-group balance summary
 - **PDF Export** — Export group expenses, balances, and summaries to PDF
+- **Group Chat** — Real-time Socket.io messaging within groups, typing indicators, read receipts, pagination
+- **Analytics Dashboard** — Interactive charts (Recharts) with category breakdown, monthly trends, member spending, daily activity, split type usage, and top spender insights
 - **Dark Mode** — Full dark mode with glassmorphism UI
 
 ## 🏗 Tech Stack
@@ -26,6 +28,8 @@ A full-stack, production-ready expense splitting web application built with the 
 | Backend    | Node.js, Express.js (MVC)               |
 | Database   | MongoDB + Mongoose                      |
 | Auth       | JWT (7d) + bcrypt + Google OAuth 2.0 (Passport) |
+| Real-time  | Socket.io (group-scoped chat rooms)     |
+| Charts     | Recharts (responsive, interactive)      |
 | File Storage | Cloudinary (receipt images/PDFs)      |
 | PDF        | PDFKit (server-side generation)          |
 | Deployment | Vercel (frontend) / Render (backend)    |
@@ -38,16 +42,18 @@ expense-splitter/
 │   └── src/
 │       ├── api/            # Axios API calls
 │       ├── components/     # Reusable components
+│       │   └── analytics/  # Chart components (Recharts)
 │       ├── context/        # Auth context
 │       ├── hooks/          # Custom hooks
 │       ├── pages/          # Page components
-│       └── utils/          # Utilities
+│       └── utils/          # Utilities (including socket.js)
 └── server/          # Express.js backend
     ├── config/             # DB, Cloudinary, Passport configs
     ├── controllers/        # Route controllers
     ├── middleware/          # Auth, upload, error handlers
-    ├── models/             # Mongoose models
+    ├── models/             # Mongoose models (User, Group, Expense, Settlement, Message)
     ├── routes/             # Express routes
+    ├── socket/             # Socket.io event handlers
     └── utils/              # Algorithms
 ```
 
@@ -186,6 +192,30 @@ Frontend runs on `http://localhost:5173`
 | GET    | `/api/groups/:id/settleup`     | Settle-up suggestions |
 | POST   | `/api/groups/:id/settle`       | Record settlement     |
 | GET    | `/api/dashboard`               | Cross-group summary   |
+
+### Chat (JWT required)
+| Method | Endpoint                             | Description               |
+|--------|--------------------------------------|---------------------------|
+| GET    | `/api/groups/:id/messages`           | Get paginated messages    |
+| POST   | `/api/groups/:id/messages/read`      | Mark messages as read     |
+| GET    | `/api/groups/:id/messages/unread-count` | Get unread count       |
+
+### Analytics (JWT required)
+| Method | Endpoint                             | Description                |
+|--------|--------------------------------------|----------------------------|
+| GET    | `/api/groups/:id/analytics`          | Group analytics            |
+| GET    | `/api/dashboard/analytics`           | Cross-group analytics      |
+
+### Socket.io Events
+| Event              | Direction       | Description                        |
+|--------------------|-----------------|------------------------------------|
+| `join_group`       | Client → Server | Join a group chat room             |
+| `send_message`     | Client → Server | Send a message to the group        |
+| `typing`           | Client → Server | Notify group that user is typing   |
+| `stop_typing`      | Client → Server | Notify group user stopped typing   |
+| `receive_message`  | Server → Client | Broadcast new message to room      |
+| `user_typing`      | Server → Client | Broadcast typing indicator         |
+| `user_stop_typing` | Server → Client | Clear typing indicator             |
 
 ## 💡 Split Types
 

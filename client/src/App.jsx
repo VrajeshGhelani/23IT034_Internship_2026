@@ -75,7 +75,7 @@ const App = () => {
           {/* Footer */}
           <footer className="border-t border-slate-800/50 py-4 text-center">
             <p className="text-xs text-slate-600">
-              SplitEase © {new Date().getFullYear()} · Split expenses with ease made by Vrajesh Ghelani
+              SplitEase © {new Date().getFullYear()} · Split expenses with ease made by Vrajesh Ghelani.
             </p>
           </footer>
         </div>

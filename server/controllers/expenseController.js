@@ -169,9 +169,18 @@ const updateExpense = async (req, res, next) => {
       return res.status(403).json({ success: false, message: 'Not authorized to edit this expense' });
     }
 
-    const { title, amount, paidBy, splitType, splits: rawSplits, category, date } = req.body;
+    let { title, amount, paidBy, splitType, splits: rawSplits, category, date } = req.body;
 
-    const finalAmount = amount !== undefined ? amount : expense.amount;
+    // When sent via FormData, splits comes as a JSON string
+    if (typeof rawSplits === 'string') {
+      try {
+        rawSplits = JSON.parse(rawSplits);
+      } catch {
+        return res.status(400).json({ success: false, message: 'Invalid splits data' });
+      }
+    }
+
+    const finalAmount = amount !== undefined && !isNaN(parseFloat(amount)) ? parseFloat(amount) : expense.amount;
     const finalSplitType = splitType || expense.splitType;
 
     let splits;
@@ -193,6 +202,22 @@ const updateExpense = async (req, res, next) => {
     expense.splits = splits;
     expense.category = category || expense.category;
     expense.date = date || expense.date;
+
+    // Handle receipt file upload if present
+    if (req.file) {
+      if (expense.receipt && expense.receipt.publicId) {
+        try {
+          await cloudinary.uploader.destroy(expense.receipt.publicId);
+        } catch (cloudErr) {
+          console.error('Failed to delete old receipt from Cloudinary:', cloudErr.message);
+        }
+      }
+      expense.receipt = {
+        url: req.file.path,
+        publicId: req.file.filename,
+      };
+    }
+
     await expense.save();
 
     const populated = await Expense.findById(expense._id)

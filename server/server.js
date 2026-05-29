@@ -91,7 +91,7 @@ app.use('/api/groups/:id/analytics', analyticsRoutes);
 
 // Standalone expense edit/delete
 const { updateExpense, deleteExpense } = require('./controllers/expenseController');
-app.put('/api/expenses/:id', verifyJWT, updateExpense);
+app.put('/api/expenses/:id', verifyJWT, uploadReceipt, updateExpense);
 app.delete('/api/expenses/:id', verifyJWT, deleteExpense);
 
 // Replace receipt on expense

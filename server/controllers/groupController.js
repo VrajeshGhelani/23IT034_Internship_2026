@@ -6,7 +6,7 @@ const Group = require('../models/Group');
 const Expense = require('../models/Expense');
 const Settlement = require('../models/Settlement');
 const User = require('../models/User');
-const cloudinary = require('cloudinary').v2;
+const cloudinary = require('../config/cloudinary');
 
 // Import balance computation
 const { getBalances: getBalancesRaw } = require('./balanceController');

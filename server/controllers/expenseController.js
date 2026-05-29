@@ -1,7 +1,7 @@
 const { validationResult, body } = require('express-validator');
 const Group = require('../models/Group');
 const Expense = require('../models/Expense');
-const cloudinary = require('cloudinary').v2;
+const cloudinary = require('../config/cloudinary');
 
 /**
  * Compute splits based on splitType and return array of {user, amount}

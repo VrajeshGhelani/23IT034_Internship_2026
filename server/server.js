@@ -28,7 +28,7 @@ const httpServer = http.createServer(app);
 // CORS
 const allowedOrigins = [
   process.env.CLIENT_URL || 'http://localhost:5173',
-  'https://expense-splitter.vercel.app', // production frontend
+  'https://expense-splitter-app-psi.vercel.app', // production frontend
 ];
 app.use(
   cors({

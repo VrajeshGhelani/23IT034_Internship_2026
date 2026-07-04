@@ -1,10 +1,12 @@
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import useAuth from '../hooks/useAuth';
+import { usePremium } from '../hooks/usePremium';
 import { getInitials } from '../utils/formatCurrency';
 import { useState } from 'react';
 
 const Navbar = () => {
   const { user, logout } = useAuth();
+  const { isPremium, loading } = usePremium();
   const navigate = useNavigate();
   const location = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -53,6 +55,17 @@ const Navbar = () => {
           {/* Right side */}
           {user ? (
             <div className="flex items-center gap-3">
+              {!loading && isPremium ? (
+                <Link to="/subscription" className="text-yellow-400 text-xs font-bold bg-yellow-400/10 px-2 py-0.5 rounded-full flex items-center gap-1 hover:bg-yellow-400/20 transition-colors">
+                  👑 Premium
+                </Link>
+              ) : (
+                !loading && (
+                  <button onClick={() => navigate('/premium')} className="text-xs bg-gradient-to-r from-purple-500 to-indigo-500 text-white px-3 py-1 rounded-full shadow hover:shadow-indigo-500/30 transition-all">
+                    Upgrade to Pro
+                  </button>
+                )
+              )}
               <div className="relative">
                 <button
                   onClick={() => setMenuOpen(!menuOpen)}

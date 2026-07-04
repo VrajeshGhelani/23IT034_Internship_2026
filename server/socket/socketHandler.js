@@ -1,6 +1,8 @@
 const Message = require('../models/Message');
 const Group = require('../models/Group');
 
+const User = require('../models/User');
+
 const socketHandler = (io) => {
   io.on('connection', (socket) => {
     console.log('Socket connected:', socket.id);
@@ -8,6 +10,15 @@ const socketHandler = (io) => {
     // JOIN GROUP ROOM
     socket.on('join_group', async ({ groupId, userId }) => {
       try {
+        // Verify premium first
+        const user = await User.findById(userId);
+        if (!user || !user.isPremium()) {
+          socket.emit('premium_required', {
+            message: 'Chat requires Premium subscription'
+          });
+          return;
+        }
+
         // Verify user is a group member before allowing join
         const group = await Group.findOne({
           _id: groupId,

@@ -31,6 +31,27 @@ const UserSchema = new mongoose.Schema(
       type: String,
       default: '',
     },
+    subscription: {
+      plan: {
+        type: String,
+        enum: ['free', 'premium'],
+        default: 'free'
+      },
+      status: {
+        type: String,
+        enum: ['inactive', 'active', 'expired'],
+        default: 'inactive'
+      },
+      startDate: Date,
+      endDate: Date,
+      razorpayOrderId: String,
+      razorpayPaymentId: String,
+      billingCycle: {
+        type: String,
+        enum: ['monthly', 'yearly'],
+        default: 'monthly'
+      }
+    }
   },
   { timestamps: true }
 );
@@ -45,6 +66,16 @@ UserSchema.pre('save', async function (next) {
 UserSchema.methods.matchPassword = async function (enteredPassword) {
   if (!this.password) return false;
   return await bcrypt.compare(enteredPassword, this.password);
+};
+
+UserSchema.methods.isPremium = function() {
+  return (
+    this.subscription &&
+    this.subscription.plan === 'premium' &&
+    this.subscription.status === 'active' &&
+    this.subscription.endDate && 
+    this.subscription.endDate > new Date()
+  );
 };
 
 module.exports = mongoose.model('User', UserSchema);

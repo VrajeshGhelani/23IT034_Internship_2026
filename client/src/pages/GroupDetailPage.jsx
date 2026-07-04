@@ -10,6 +10,8 @@ import SettleUpView from '../components/SettleUpView';
 import ActivityFeed from '../components/ActivityFeed';
 import GroupChat from '../components/GroupChat';
 import AnalyticsPage from '../pages/AnalyticsPage';
+import PremiumLockOverlay from '../components/PremiumLockOverlay';
+import { usePremium } from '../hooks/usePremium';
 import axiosInstance from '../api/axiosInstance';
 import { getInitials } from '../utils/formatCurrency';
 
@@ -19,6 +21,7 @@ const GroupDetailPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { isPremium } = usePremium();
   const [group, setGroup] = useState(null);
   const [groupLoading, setGroupLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('Expenses');
@@ -444,8 +447,8 @@ const GroupDetailPage = () => {
             {tab === 'Balances' && '⚖️ '}
             {tab === 'Settle Up' && '✅ '}
             {tab === 'Activity' && '📋 '}
-            {tab === 'Chat' && '💬 '}
-            {tab === 'Analytics' && '📊 '}
+            {tab === 'Chat' && (isPremium ? '💬 ' : '👑 ')}
+            {tab === 'Analytics' && (isPremium ? '📊 ' : '👑 ')}
             {tab}
             {/* Unread badge for Chat tab */}
             {tab === 'Chat' && unreadCount > 0 && activeTab !== 'Chat' && (
@@ -492,11 +495,23 @@ const GroupDetailPage = () => {
         {activeTab === 'Activity' && <ActivityFeed groupId={id} />}
 
         {activeTab === 'Chat' && (
-          <GroupChat groupId={id} members={group.members} />
+          isPremium ? (
+            <GroupChat groupId={id} members={group.members} />
+          ) : (
+            <div className="relative min-h-[400px]">
+              <PremiumLockOverlay featureName="Chat" />
+            </div>
+          )
         )}
 
         {activeTab === 'Analytics' && (
-          <AnalyticsPage groupId={id} groupName={group.name} inline={true} />
+          isPremium ? (
+            <AnalyticsPage groupId={id} groupName={group.name} inline={true} />
+          ) : (
+            <div className="relative min-h-[400px]">
+              <PremiumLockOverlay featureName="Analytics" />
+            </div>
+          )
         )}
       </div>
 

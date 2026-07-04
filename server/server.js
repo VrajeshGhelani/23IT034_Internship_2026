@@ -14,6 +14,7 @@ const expenseRoutes = require('./routes/expenseRoutes');
 const balanceRoutes = require('./routes/balanceRoutes');
 const chatRoutes = require('./routes/chatRoutes');
 const analyticsRoutes = require('./routes/analyticsRoutes');
+const paymentRoutes = require('./routes/paymentRoutes');
 const errorHandler = require('./middleware/errorHandler');
 const { verifyJWT } = require('./middleware/authMiddleware');
 const { getDashboard } = require('./controllers/balanceController');
@@ -88,6 +89,9 @@ app.use('/api/groups/:id/messages', chatRoutes);
 
 // Analytics routes
 app.use('/api/groups/:id/analytics', analyticsRoutes);
+
+// Payment routes
+app.use('/api/payment', paymentRoutes);
 
 // Standalone expense edit/delete
 const { updateExpense, deleteExpense } = require('./controllers/expenseController');

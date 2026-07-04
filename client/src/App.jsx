@@ -11,6 +11,8 @@ import AnalyticsPage from './pages/AnalyticsPage';
 import NotFoundPage from './pages/NotFoundPage';
 import JoinGroupPage from './pages/JoinGroupPage';
 import AuthCallbackPage from './pages/AuthCallbackPage';
+import PremiumPage from './pages/PremiumPage';
+import SubscriptionPage from './pages/SubscriptionPage';
 
 const App = () => {
   return (
@@ -60,6 +62,22 @@ const App = () => {
                 element={
                   <ProtectedRoute>
                     <AnalyticsPageWrapper />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/premium"
+                element={
+                  <ProtectedRoute>
+                    <PremiumPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/subscription"
+                element={
+                  <ProtectedRoute>
+                    <SubscriptionPage />
                   </ProtectedRoute>
                 }
               />
